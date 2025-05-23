@@ -33,24 +33,29 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String path = request.getServletPath();
 
-        // Skip JWT check for login and register endpoints
-        if (path.startsWith("/api/auth/login") || path.startsWith("/api/auth/register")) {
+        // ✅ Skip JWT validation for public endpoints
+        if (path.startsWith("/api/auth/login") ||
+            path.startsWith("/api/auth/register") ||
+            path.startsWith("/api/shared/access/") ||
+            path.startsWith("/api/pdf/search")) {
             filterChain.doFilter(request, response);
             return;
         }
 
         final String authHeader = request.getHeader("Authorization");
 
-        String username = null;
-        String jwt = null;
-
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            jwt = authHeader.substring(7);
-            username = jwtUtil.extractUsername(jwt);
+        // ✅ Continue without auth if missing or malformed header
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
+            return;
         }
+
+        String jwt = authHeader.substring(7);
+        String username = jwtUtil.extractUsername(jwt);
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userRepository.findByUsername(username).orElse(null);
+
             if (userDetails != null && jwtUtil.validateToken(jwt, userDetails.getUsername())) {
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(
@@ -61,7 +66,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
 
-                // Log authenticated user
                 System.out.println("Authenticated user: " + authToken.getName());
             }
         }
