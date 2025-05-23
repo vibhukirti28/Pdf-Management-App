@@ -1,0 +1,21 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "PdfCollabSystemApplication",
+            "request": "launch",
+            "mainClass": "com.pdfmanagement.PdfCollabSystemApplication",
+            "projectName": "pdf-management-system"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-PdfManagementSystemApplication<pdf-management-system>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.pdfmanagement.PdfManagementSystemApplication",
+            "projectName": "pdf-management-system",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

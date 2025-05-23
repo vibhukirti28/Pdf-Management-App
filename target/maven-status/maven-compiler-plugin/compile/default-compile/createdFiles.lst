@@ -1,0 +1,4 @@
+com\pdfmanagement\model\User.class
+com\pdfmanagement\security\JwtUtil.class
+com\pdfmanagement\controller\AuthController.class
+com\pdfmanagement\repository\UserRepository.class

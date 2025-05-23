@@ -1,0 +1,75 @@
+Awesome observation — you're thinking critically! Let's clarify this.
+
+---
+
+### ✅ You're absolutely right to ask:
+
+> Didn't we already handle authentication in the `AuthController` and `AuthService`? Why are we doing it **again** in `SecurityConfig`?
+
+### 🧠 Short Answer:
+
+* **`AuthService` and `AuthController` handle the logic of login/register.**
+* **`SecurityConfig` tells Spring Security which URLs should be protected or open.**
+
+They are **not doing the same thing**, but they **work together**.
+
+---
+
+### 🧩 Here's the difference:
+
+| Part                             | What it does                                     | Example                                                              |
+| -------------------------------- | ------------------------------------------------ | -------------------------------------------------------------------- |
+| `AuthController` + `AuthService` | Handle login, signup, and JWT generation logic   | `"Take user input → check password → give JWT"`                      |
+| `SecurityConfig`                 | Tells Spring which routes need a token to access | `"Allow /login without token, block /profile unless token is valid"` |
+
+---
+
+### 🔁 Why both are needed?
+
+#### Imagine this flow:
+
+1. **User logs in** at `/api/auth/login`
+
+   * Handled by `AuthController` → calls `AuthService.login()` → returns JWT.
+
+2. **User sends token** to access `/api/profile`
+
+   * Now **Spring Security** needs to decide:
+
+     * Is `/api/profile` protected?
+     * Should I allow this request based on the token?
+
+✅ That decision is made in `SecurityConfig`, specifically in:
+
+```java
+.authorizeHttpRequests(auth -> auth
+    .requestMatchers("/api/auth/**").permitAll()  // login/signup are open
+    .anyRequest().authenticated()                 // everything else needs login
+)
+```
+
+Without this, **Spring wouldn’t know which URLs need security** — even if you generated a token.
+
+---
+
+### 🛠️ Think of it like:
+
+* **AuthService** is like giving a person a **key card** (JWT token).
+* **SecurityConfig** sets the **rules for the building**:
+
+  * 🔓 “Lobby (login/signup) is open to all”
+  * 🔒 “Server room (protected routes) needs a key card”
+
+---
+
+### ✅ Summary:
+
+* You're not repeating logic.
+* You're **separating concerns**:
+
+  * AuthController/AuthService → **create** tokens
+  * SecurityConfig → **check** and **enforce** token rules
+
+This is clean and follows best practices.
+
+Let me know if you want to see what happens behind the scenes when a user sends a request with a token!
