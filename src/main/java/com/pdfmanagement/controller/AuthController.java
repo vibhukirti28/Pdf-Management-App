@@ -7,10 +7,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken; // Added this import
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -36,12 +37,16 @@ public class AuthController {
         String email = userMap.get("email");
         String password = userMap.get("password");
 
-        if (userRepository.findByUsername(username).isPresent()) {
-            return ResponseEntity.badRequest().body("Username is already taken");
+        if (username == null || username.trim().isEmpty() || email == null || email.trim().isEmpty() || password == null || password.isEmpty()) {
+            return ResponseEntity.badRequest().body("Username, email, and password are required");
+        }
+
+        if (userRepository.findByEmail(email).isPresent()) {
+            return ResponseEntity.badRequest().body("Email is already taken");
         }
 
         User user = new User();
-        user.setUsername(username);
+        user.setDbUsername(username);
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(password));
 
@@ -53,18 +58,20 @@ public class AuthController {
     // Login endpoint
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody Map<String, String> loginMap) {
-        String username = loginMap.get("username");
+        String email = loginMap.get("email");
         String password = loginMap.get("password");
 
         try {
             authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(username, password)
+                    new UsernamePasswordAuthenticationToken(email, password)
             );
         } catch (BadCredentialsException e) {
-            return ResponseEntity.status(401).body("Invalid username or password");
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("message", "Invalid email or password");
+            return ResponseEntity.status(401).body(errorResponse);
         }
 
-        final String token = jwtUtil.generateToken(username);
+        final String token = jwtUtil.generateToken(email);
 
         return ResponseEntity.ok(Map.of("jwtToken", token));
     }

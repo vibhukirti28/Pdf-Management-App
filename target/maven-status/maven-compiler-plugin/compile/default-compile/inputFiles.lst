@@ -1,12 +1,17 @@
+D:\Projects\PDFProject\src\main\java\com\pdfmanagement\model\SharedFile.java
 D:\Projects\PDFProject\src\main\java\com\pdfmanagement\controller\PDFController.java
+D:\Projects\PDFProject\src\main\java\com\pdfmanagement\model\Comment.java
 D:\Projects\PDFProject\src\main\java\com\pdfmanagement\model\PDFFile.java
 D:\Projects\PDFProject\src\main\java\com\pdfmanagement\PdfCollabSystemApplication.java
 D:\Projects\PDFProject\src\main\java\com\pdfmanagement\service\CustomUserDetailsService.java
 D:\Projects\PDFProject\src\main\java\com\pdfmanagement\service\FileStorageService.java
 D:\Projects\PDFProject\src\main\java\com\pdfmanagement\service\JwtService.java
+D:\Projects\PDFProject\src\main\java\com\pdfmanagement\repository\CommentRepository.java
 D:\Projects\PDFProject\src\main\java\com\pdfmanagement\repository\PDFRepository.java
 D:\Projects\PDFProject\src\main\java\com\pdfmanagement\util\JwtUtil.java
 D:\Projects\PDFProject\src\main\java\com\pdfmanagement\controller\AuthController.java
+D:\Projects\PDFProject\src\main\java\com\pdfmanagement\controller\SharedFileController.java
+D:\Projects\PDFProject\src\main\java\com\pdfmanagement\repository\SharedFileRepository.java
 D:\Projects\PDFProject\src\main\java\com\pdfmanagement\repository\UserRepository.java
 D:\Projects\PDFProject\src\main\java\com\pdfmanagement\config\SecurityConfig.java
 D:\Projects\PDFProject\src\main\java\com\pdfmanagement\model\User.java

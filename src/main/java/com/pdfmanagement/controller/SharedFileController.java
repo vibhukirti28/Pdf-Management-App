@@ -114,27 +114,29 @@ public class SharedFileController {
         public String getPdfUrl() { return pdfUrl; }
     }
 
-    @PostMapping("/access/{shareToken}/comment")
-public ResponseEntity<?> addGuestComment(@PathVariable String shareToken, @RequestBody GuestCommentRequest commentRequest) {
+    // Add a comment to a shared PDF (no auth, uses shareToken)
+    @PostMapping("/{shareToken}/comments")
+    public ResponseEntity<?> addSharedFileComment(@PathVariable String shareToken, @RequestBody GuestCommentRequest commentRequest) {
     var sharedOpt = sharedFileRepository.findByShareToken(shareToken);
     if (sharedOpt.isEmpty()) {
         return ResponseEntity.notFound().build();
     }
 
-    SharedFile sharedFile = sharedOpt.get();
-    PDFFile pdfFile = sharedFile.getPdfFile();
+        SharedFile sharedFile = sharedOpt.get();
+        PDFFile pdfFile = sharedFile.getPdfFile();
 
-    Comment comment = new Comment();
-    comment.setPdfFile(pdfFile);
-    comment.setUsername(commentRequest.getUsername());
-    comment.setText(commentRequest.getText());
-    comment.setCommentTime(java.time.LocalDateTime.now());
+        Comment comment = new Comment();
+        comment.setPdfFile(pdfFile);
+        comment.setUsername(commentRequest.getUsername()); // Set the username from the request
+        comment.setText(commentRequest.getText());
+        comment.setCommentTime(java.time.LocalDateTime.now()); // Ensure time is set
 
-    commentRepository.save(comment);
+        commentRepository.save(comment);
 
-    return ResponseEntity.ok(java.util.Map.of("message", "Comment added"));
-}
-public static class GuestCommentRequest {
+        return ResponseEntity.ok(java.util.Map.of("message", "Comment added"));
+    }
+
+    public static class GuestCommentRequest {
     private String username;
     private String text;
 
@@ -145,4 +147,5 @@ public static class GuestCommentRequest {
     public void setText(String text) { this.text = text; }
 }
 
+// End of SharedFileController class
 }

@@ -15,7 +15,7 @@ public class User implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String username;
+    private String username; // This field will store a copy of the email for DB purposes
     private String email;
     private String password;
 
@@ -32,8 +32,8 @@ public class User implements UserDetails {
     }
 
     @Override
-    public String getUsername() {
-        return username;
+    public String getUsername() { // This now returns the email as per UserDetails contract
+        return email;
     }
 
     @Override
@@ -56,7 +56,16 @@ public class User implements UserDetails {
         return true; // you can customize
     }
 
-    // --- getters and setters for id, email, username, password ---
+    // Getter and Setter for the database 'username' field
+    public String getDbUsername() {
+        return username;
+    }
+
+    public void setDbUsername(String username) {
+        this.username = username;
+    }
+
+    // Getters and Setters for id, email, password
 
     public Long getId() {
         return id;
@@ -72,10 +81,6 @@ public class User implements UserDetails {
 
     public void setEmail(String email) {
         this.email = email;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
     }
 
     public void setPassword(String password) {
