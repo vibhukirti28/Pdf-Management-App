@@ -17,14 +17,14 @@ public class CustomUserDetailsService implements UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException { // Spring Security expects this method signature; 'email' is passed as 'username'
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException { 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
         
         return org.springframework.security.core.userdetails.User
                 .withUsername(user.getUsername())
                 .password(user.getPassword())
-                .authorities("USER") // You can add more authorities/roles here
+                .authorities("USER")
                 .build();
     }
 }

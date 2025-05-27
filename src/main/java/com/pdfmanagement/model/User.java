@@ -8,18 +8,16 @@ import java.util.Collection;
 import java.util.Collections;
 
 @Entity
-@Table(name = "users")  // Use "users" instead of "user" to avoid reserved keyword conflict
+@Table(name = "users")  
 public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String username; // This field will store a copy of the email for DB purposes
+    private String username; 
     private String email;
     private String password;
-
-    // --- UserDetails interface methods ---
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -38,22 +36,22 @@ public class User implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-        return true; // you can customize
+        return true; 
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return true; // you can customize
+        return true; 
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return true; // you can customize
+        return true; 
     }
 
     @Override
     public boolean isEnabled() {
-        return true; // you can customize
+        return true; 
     }
 
     // Getter and Setter for the database 'username' field

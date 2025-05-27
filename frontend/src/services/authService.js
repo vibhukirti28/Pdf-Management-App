@@ -8,8 +8,6 @@ const AuthService = {
   login: (credentials) => {
     return api.post('/auth/login', credentials);
   },
-
-  // logout: () => { /* Handled by removing token and updating context */ },
 };
 
 export default AuthService;

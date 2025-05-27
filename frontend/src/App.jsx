@@ -6,7 +6,7 @@ import Navbar from './components/Navbar';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
-import PdfViewPage from './pages/PdfViewPage'; // Keep for now, might be used or refactored later
+import PdfViewPage from './pages/PdfViewPage'; 
 import PdfDetailPage from './pages/PdfDetailPage'; // Import the new detail page
 import SharedPdfViewerPage from './pages/SharedPdfViewerPage'; // Import the shared PDF viewer page
 

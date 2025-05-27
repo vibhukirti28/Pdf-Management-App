@@ -36,14 +36,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String path = request.getServletPath();
 
-        // ✅ Skip JWT validation for public endpoints
-        // Public paths from SecurityConfig:
-        // "/api/auth/**" -> covered by /api/auth/login, /api/auth/register
-        // "/api/shared/access/**" -> covered by /api/shared/access/
-        // "/api/shared/download/**"
-        // "/api/shared/view/**"
-        // "/api/shared/*/comments"
-        // "/api/pdf/search"
+
         if (path.startsWith("/api/auth/login") ||
             path.startsWith("/api/auth/register") ||
             path.startsWith("/api/shared/access/") ||
@@ -57,6 +50,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         final String authHeader = request.getHeader("Authorization");
+
 
         // ✅ Continue without auth if missing or malformed header
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -102,17 +96,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     null,
                                     userDetails.getAuthorities()
                             );
+
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                     System.out.println("[JwtAuthFilter] Successfully authenticated and set SecurityContext for user: " + authToken.getName() + " for " + requestPathInfo);
-                } else {
+                } 
+                
+                else {
                     System.out.println("[JwtAuthFilter] JWT validation FAILED for " + email + " for " + requestPathInfo);
                 }
+
             } // Closes the 'else' for 'userDetails != null'
-        } else if (email != null) {
+        } 
+        
+        else if (email != null) {
              System.out.println("[JwtAuthFilter] SecurityContext already has authentication for " + requestPathInfo + ". Current auth: " + SecurityContextHolder.getContext().getAuthentication().getName());
-        } else {
-            // This case should ideally not be reached if email extraction failed and returned above
+        } 
+        
+        else {
+            // This case not reached if email extraction failed and returned above
             System.out.println("[JwtAuthFilter] Email is null after extraction attempt for " + requestPathInfo + ", cannot authenticate.");
         }
 

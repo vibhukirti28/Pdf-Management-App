@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import AuthService from '../services/authService';
-import api from '../services/api'; // For direct api instance access if needed for user fetching
+import api from '../services/api'; 
 
 const AuthContext = createContext(null);
 
@@ -15,11 +15,6 @@ export const AuthProvider = ({ children }) => {
     const storedToken = localStorage.getItem('token');
     if (storedToken) {
       setToken(storedToken);
-      // Optionally, you could verify the token here and fetch user details
-      // For now, we'll assume if a token exists, it's valid until an API call fails
-      // Or, decode token to get user info if it's stored in the token (not best practice for sensitive info)
-      // For simplicity, we'll not fetch user details on load here, but in a real app you might.
-      // setUser({ username: 'loaded_from_token_placeholder' }); // Example if user info was in token
     }
     setLoading(false);
   }, []);
@@ -34,15 +29,11 @@ export const AuthProvider = ({ children }) => {
       }
       localStorage.setItem('token', jwtToken);
       setToken(jwtToken);
-      // Set user with the username used for login, as backend doesn't return full user object on login
-      // You might want to fetch full user details from another endpoint using the token
-      // For now, just indicate login was successful or store email if needed
-      // If your app primarily uses email as the identifier in the frontend user object:
       setUser({ email: email }); 
-      return { email: email }; // Or return whatever user representation you prefer
+      return { email: email }; 
     } catch (error) {
       console.error('Login failed:', error);
-      logout(); // Clear any stale auth state
+      logout(); 
       throw error;
     }
   };
@@ -74,7 +65,7 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
-    loading, // To allow components to wait for initial auth check
+    loading,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

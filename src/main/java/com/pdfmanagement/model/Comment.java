@@ -14,11 +14,11 @@ public class Comment {
     @JoinColumn(name = "pdf_id")
     private PDFFile pdfFile;
 
-    private String username; // who commented
+    private String username; 
     private String text;
     private LocalDateTime commentTime;
 
-    // Getters and setters below...
+    // Getters and setters
 
     public Long getId() {
         return id;

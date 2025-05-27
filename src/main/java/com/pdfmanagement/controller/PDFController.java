@@ -70,6 +70,7 @@ public class PDFController {
 
     // 1. Search endpoint returns detailsUrl to get PDF metadata + comments
     // @GetMapping("/search") // Removed duplicate/conflicting mapping
+
     @GetMapping("/my-files/search")
     public ResponseEntity<List<PDFFile>> searchMyFiles(@RequestParam("q") String query, Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
@@ -196,7 +197,9 @@ public class PDFController {
                         .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + pdfFile.getFilename() + "\"")
                         .contentType(MediaType.APPLICATION_PDF)
                         .body(resource);
-            } else {
+            }
+            
+            else {
                 logger.error("Error: File not found or not readable at path: {} for PDF ID: {}", pdfFile.getFilepath(), id);
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null); // Internal server error
             }
@@ -224,10 +227,6 @@ public class PDFController {
         return ResponseEntity.ok(comment); // Return the created comment
     }
 
-    // Note: The @PostMapping("/{id}/share") endpoint was correctly added after this in the previous step.
-    // The duplicated content below this comment block in the original diff was an error.
-    // The correct structure is addComment, then sharePdf, then the closing brace of the class.
-
     @PostMapping("/{id}/share")
     public ResponseEntity<?> sharePdf(@PathVariable Long id, Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
@@ -252,8 +251,7 @@ public class PDFController {
         sharedFileRepository.save(sharedFile);
 
         // Construct the shareable link (adjust frontend URL as needed)
-        String shareableLink = "http://localhost:5174/share/" + sharedFile.getShareToken(); // Updated port 
-        // Replace 5173 with your actual frontend port if different
+        String shareableLink = "http://localhost:5173/share/" + sharedFile.getShareToken(); // Updated port 
 
         return ResponseEntity.ok(java.util.Map.of("shareableLink", shareableLink, "shareToken", sharedFile.getShareToken()));
     }
@@ -285,7 +283,9 @@ public class PDFController {
                     .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + pdfFile.getFilename() + "\"")
                     .contentType(MediaType.APPLICATION_PDF)
                     .body(resource);
-        } catch (MalformedURLException e) {
+        } 
+        
+        catch (MalformedURLException e) {
             System.err.println("Error: Malformed URL for filepath: " + pdfFile.getFilepath() + " for shareToken: " + shareToken + ". Error: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }

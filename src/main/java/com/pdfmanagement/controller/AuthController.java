@@ -65,7 +65,9 @@ public class AuthController {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(email, password)
             );
-        } catch (BadCredentialsException e) {
+        }
+        
+        catch (BadCredentialsException e) {
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("message", "Invalid email or password");
             return ResponseEntity.status(401).body(errorResponse);

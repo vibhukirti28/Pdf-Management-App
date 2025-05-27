@@ -51,7 +51,6 @@ const PdfService = {
   },
 
   addSharedFileComment: (shareToken, commentData) => {
-    // commentData should be an object like { username: "Guest Name", text: "This is a comment" }
     return api.post(`/shared/${shareToken}/comments`, commentData);
   }
 };

@@ -147,5 +147,4 @@ public class SharedFileController {
     public void setText(String text) { this.text = text; }
 }
 
-// End of SharedFileController class
 }
