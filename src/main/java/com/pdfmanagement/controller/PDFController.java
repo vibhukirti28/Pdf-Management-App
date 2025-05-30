@@ -6,6 +6,9 @@ import com.pdfmanagement.repository.CommentRepository;
 import com.pdfmanagement.repository.PDFRepository;
 import com.pdfmanagement.service.FileStorageService;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,23 +75,23 @@ public class PDFController {
     // @GetMapping("/search") // Removed duplicate/conflicting mapping
 
     @GetMapping("/my-files/search")
-    public ResponseEntity<List<PDFFile>> searchMyFiles(@RequestParam("q") String query, Authentication authentication) {
+    public ResponseEntity<List<PDFFileResponse>> searchMyFiles(@RequestParam("q") String query, Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(401).build(); // Unauthorized
         }
         String email = authentication.getName(); // This is now the email
         List<PDFFile> userPdfs = pdfRepository.findByUploadedByAndFilenameContainingIgnoreCase(email, query);
-        return ResponseEntity.ok(userPdfs);
+        return ResponseEntity.ok(userPdfs.stream().map(pdf -> new PDFFileResponse(pdf)).toList());
     }
 
     @GetMapping("/my-files")
-    public ResponseEntity<List<PDFFile>> getMyFiles(Authentication authentication) {
+    public ResponseEntity<List<PDFFileResponse>> getMyFiles(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(401).build(); // Unauthorized
         }
         String email = authentication.getName(); // This is now the email
         List<PDFFile> userPdfs = pdfRepository.findByUploadedBy(email);
-        return ResponseEntity.ok(userPdfs);
+        return ResponseEntity.ok(userPdfs.stream().map(pdf -> new PDFFileResponse(pdf)).toList());
     }
 
     // 1. Search endpoint returns detailsUrl to get PDF metadata + comments
@@ -144,17 +147,49 @@ public class PDFController {
         return ResponseEntity.ok(new PdfDetailsResponse(pdfFile, comments));
     }
 
+    @Getter
+    @Setter
+    public static class CommentResponse {
+        private Long id;
+        private String text;
+        private String username;
+        private LocalDateTime commentTime;
+
+        public CommentResponse(Comment comment) {
+            this.id = comment.getId();
+            this.text = comment.getText();
+            this.username = comment.getUsername();
+            this.commentTime = comment.getCommentTime();
+        }
+    }
+
+    @Getter
+    @Setter
+    public static class PDFFileResponse {
+        private Long id;
+        private String filename;
+        private String uploadedBy;
+        private LocalDateTime uploadTime;
+
+        public PDFFileResponse(PDFFile pdfFile) {
+            this.id = pdfFile.getId();
+            this.filename = pdfFile.getFilename();
+            this.uploadedBy = pdfFile.getUploadedBy();
+            this.uploadTime = pdfFile.getUploadTime();
+        }
+    }
+
     public static class PdfDetailsResponse {
-        private PDFFile pdfFile;
-        private List<Comment> comments;
+        private PDFFileResponse pdfFile;
+        private List<CommentResponse> comments;
 
         public PdfDetailsResponse(PDFFile pdfFile, List<Comment> comments) {
-            this.pdfFile = pdfFile;
-            this.comments = comments;
+            this.pdfFile = new PDFFileResponse(pdfFile);
+            this.comments = comments.stream().map(comment -> new CommentResponse(comment)).toList();
         }
 
-        public PDFFile getPdfFile() { return pdfFile; }
-        public List<Comment> getComments() { return comments; }
+        public PDFFileResponse getPdfFile() { return pdfFile; }
+        public List<CommentResponse> getComments() { return comments; }
     }
 
     // 3. Download or display PDF file inline — accessible **only via shareable link**
@@ -224,7 +259,7 @@ public class PDFController {
         comment.setText(commentRequest.getText());
         comment.setCommentTime(LocalDateTime.now());
         commentRepository.save(comment);
-        return ResponseEntity.ok(comment); // Return the created comment
+        return ResponseEntity.ok(new CommentResponse(comment)); // Return the created comment
     }
 
     @PostMapping("/{id}/share")
