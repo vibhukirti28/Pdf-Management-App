@@ -7,7 +7,8 @@ import java.util.List;
 
 public interface PDFRepository extends JpaRepository<PDFFile, Long> {
     List<PDFFile> findByUploadedBy(String email);
+
     List<PDFFile> findByFilenameContainingIgnoreCase(String filename);
+
     List<PDFFile> findByUploadedByAndFilenameContainingIgnoreCase(String uploadedBy, String filename);
 }
-

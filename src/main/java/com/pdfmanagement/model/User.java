@@ -8,14 +8,14 @@ import java.util.Collection;
 import java.util.Collections;
 
 @Entity
-@Table(name = "users")  
+@Table(name = "users")
 public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String username; 
+    private String username;
     private String email;
     private String password;
 
@@ -36,22 +36,22 @@ public class User implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-        return true; 
+        return true;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return true; 
+        return true;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return true; 
+        return true;
     }
 
     @Override
     public boolean isEnabled() {
-        return true; 
+        return true;
     }
 
     // Getter and Setter for the database 'username' field

@@ -20,7 +20,8 @@ public class SharedFile {
 
     private LocalDateTime createdAt;
 
-    public SharedFile() {}
+    public SharedFile() {
+    }
 
     @PrePersist
     public void generateShareToken() {

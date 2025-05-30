@@ -1,5 +1,6 @@
 package com.pdfmanagement.controller;
 
+import com.pdfmanagement.controller.dto.PdfDetailsResponse;
 import com.pdfmanagement.model.Comment;
 import com.pdfmanagement.model.PDFFile;
 import com.pdfmanagement.model.SharedFile;
@@ -65,7 +66,7 @@ public class SharedFileController {
         PDFFile pdfFile = sharedFile.getPdfFile();
         List<Comment> comments = commentRepository.findByPdfFile(pdfFile);
 
-        return ResponseEntity.ok(new PdfDetailsResponse(pdfFile, comments, "/api/shared/download/" + shareToken));
+        return ResponseEntity.ok(new PdfDetailsResponse(pdfFile, comments));
     }
 
     // Download shared PDF by share token (no auth)
@@ -97,30 +98,14 @@ public class SharedFileController {
         }
     }
 
-    // DTO for PDF metadata + comments + download URL
-    public static class PdfDetailsResponse {
-        private PDFFile pdfFile;
-        private List<Comment> comments;
-        private String pdfUrl;
-
-        public PdfDetailsResponse(PDFFile pdfFile, List<Comment> comments, String pdfUrl) {
-            this.pdfFile = pdfFile;
-            this.comments = comments;
-            this.pdfUrl = pdfUrl;
-        }
-
-        public PDFFile getPdfFile() { return pdfFile; }
-        public List<Comment> getComments() { return comments; }
-        public String getPdfUrl() { return pdfUrl; }
-    }
-
     // Add a comment to a shared PDF (no auth, uses shareToken)
     @PostMapping("/{shareToken}/comments")
-    public ResponseEntity<?> addSharedFileComment(@PathVariable String shareToken, @RequestBody GuestCommentRequest commentRequest) {
-    var sharedOpt = sharedFileRepository.findByShareToken(shareToken);
-    if (sharedOpt.isEmpty()) {
-        return ResponseEntity.notFound().build();
-    }
+    public ResponseEntity<?> addSharedFileComment(@PathVariable String shareToken,
+            @RequestBody GuestCommentRequest commentRequest) {
+        var sharedOpt = sharedFileRepository.findByShareToken(shareToken);
+        if (sharedOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
 
         SharedFile sharedFile = sharedOpt.get();
         PDFFile pdfFile = sharedFile.getPdfFile();
@@ -137,14 +122,24 @@ public class SharedFileController {
     }
 
     public static class GuestCommentRequest {
-    private String username;
-    private String text;
+        private String username;
+        private String text;
 
-    public String getUsername() { return username; }
-    public void setUsername(String username) { this.username = username; }
+        public String getUsername() {
+            return username;
+        }
 
-    public String getText() { return text; }
-    public void setText(String text) { this.text = text; }
-}
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        public String getText() {
+            return text;
+        }
+
+        public void setText(String text) {
+            this.text = text;
+        }
+    }
 
 }

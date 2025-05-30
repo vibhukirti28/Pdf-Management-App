@@ -1,5 +1,6 @@
 package com.pdfmanagement.controller;
 
+import com.pdfmanagement.controller.dto.CreateUserRequest;
 import com.pdfmanagement.model.User;
 import com.pdfmanagement.repository.UserRepository;
 import com.pdfmanagement.util.JwtUtil;
@@ -13,6 +14,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -31,27 +34,27 @@ public class AuthController {
     private AuthenticationManager authenticationManager;
 
     // Register endpoint
+    /**
+     * Endpoint to register a user.
+     * @param createUserRequest a {@link CreateUserRequest} containing the user's email, username, and password
+     * @return a ResponseEntity containing either a success message or an error message
+     */
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody Map<String, String> userMap) {
-        String username = userMap.get("username");
-        String email = userMap.get("email");
-        String password = userMap.get("password");
-
-        if (username == null || username.trim().isEmpty() || email == null || email.trim().isEmpty() || password == null || password.isEmpty()) {
-            return ResponseEntity.badRequest().body("Username, email, and password are required");
-        }
-
-        if (userRepository.findByEmail(email).isPresent()) {
+    public ResponseEntity<?> registerUser(@RequestBody @Valid CreateUserRequest createUserRequest) {
+        // Check if email is already taken
+        if (userRepository.findByEmail(createUserRequest.getEmail()).isPresent()) {
             return ResponseEntity.badRequest().body("Email is already taken");
         }
 
+        // Create and save the user
         User user = new User();
-        user.setDbUsername(username);
-        user.setEmail(email);
-        user.setPassword(passwordEncoder.encode(password));
+        user.setDbUsername(createUserRequest.getUsername());
+        user.setEmail(createUserRequest.getEmail());
+        user.setPassword(passwordEncoder.encode(createUserRequest.getPassword()));
 
         userRepository.save(user);
 
+        // Return success message
         return ResponseEntity.ok("User registered successfully");
     }
 
@@ -63,10 +66,9 @@ public class AuthController {
 
         try {
             authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(email, password)
-            );
+                    new UsernamePasswordAuthenticationToken(email, password));
         }
-        
+
         catch (BadCredentialsException e) {
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("message", "Invalid email or password");

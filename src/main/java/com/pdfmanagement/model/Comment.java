@@ -14,7 +14,7 @@ public class Comment {
     @JoinColumn(name = "pdf_id")
     private PDFFile pdfFile;
 
-    private String username; 
+    private String username;
     private String text;
     private LocalDateTime commentTime;
 

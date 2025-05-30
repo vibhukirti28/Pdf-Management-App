@@ -2,12 +2,14 @@ package com.pdfmanagement.controller;
 
 import com.pdfmanagement.model.PDFFile;
 import com.pdfmanagement.model.Comment;
+import com.pdfmanagement.controller.dto.PDFFileResponse;
+import com.pdfmanagement.controller.dto.PdfSearchResult;
+import com.pdfmanagement.controller.dto.CommentRequest;
+import com.pdfmanagement.controller.dto.CommentResponse;
+import com.pdfmanagement.controller.dto.PdfDetailsResponse;
 import com.pdfmanagement.repository.CommentRepository;
 import com.pdfmanagement.repository.PDFRepository;
 import com.pdfmanagement.service.FileStorageService;
-
-import lombok.Getter;
-import lombok.Setter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,7 +77,8 @@ public class PDFController {
     // @GetMapping("/search") // Removed duplicate/conflicting mapping
 
     @GetMapping("/my-files/search")
-    public ResponseEntity<List<PDFFileResponse>> searchMyFiles(@RequestParam("q") String query, Authentication authentication) {
+    public ResponseEntity<List<PDFFileResponse>> searchMyFiles(@RequestParam("q") String query,
+            Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(401).build(); // Unauthorized
         }
@@ -105,33 +108,10 @@ public class PDFController {
                     pdf.getFilename(),
                     pdf.getUploadedBy(),
                     pdf.getUploadTime(),
-                    "/api/pdf/" + pdf.getId()   // clickable details URL
-            );
+                    "/api/pdf/" + pdf.getId());
         }).toList();
 
         return ResponseEntity.ok(response);
-    }
-
-    public static class PdfSearchResult {
-        private Long id;
-        private String filename;
-        private String uploadedBy;
-        private LocalDateTime uploadTime;
-        private String detailsUrl;
-
-        public PdfSearchResult(Long id, String filename, String uploadedBy, LocalDateTime uploadTime, String detailsUrl) {
-            this.id = id;
-            this.filename = filename;
-            this.uploadedBy = uploadedBy;
-            this.uploadTime = uploadTime;
-            this.detailsUrl = detailsUrl;
-        }
-
-        public Long getId() { return id; }
-        public String getFilename() { return filename; }
-        public String getUploadedBy() { return uploadedBy; }
-        public LocalDateTime getUploadTime() { return uploadTime; }
-        public String getDetailsUrl() { return detailsUrl; }
     }
 
     // 2. Get PDF metadata + all comments by PDF id
@@ -147,54 +127,11 @@ public class PDFController {
         return ResponseEntity.ok(new PdfDetailsResponse(pdfFile, comments));
     }
 
-    @Getter
-    @Setter
-    public static class CommentResponse {
-        private Long id;
-        private String text;
-        private String username;
-        private LocalDateTime commentTime;
-
-        public CommentResponse(Comment comment) {
-            this.id = comment.getId();
-            this.text = comment.getText();
-            this.username = comment.getUsername();
-            this.commentTime = comment.getCommentTime();
-        }
-    }
-
-    @Getter
-    @Setter
-    public static class PDFFileResponse {
-        private Long id;
-        private String filename;
-        private String uploadedBy;
-        private LocalDateTime uploadTime;
-
-        public PDFFileResponse(PDFFile pdfFile) {
-            this.id = pdfFile.getId();
-            this.filename = pdfFile.getFilename();
-            this.uploadedBy = pdfFile.getUploadedBy();
-            this.uploadTime = pdfFile.getUploadTime();
-        }
-    }
-
-    public static class PdfDetailsResponse {
-        private PDFFileResponse pdfFile;
-        private List<CommentResponse> comments;
-
-        public PdfDetailsResponse(PDFFile pdfFile, List<Comment> comments) {
-            this.pdfFile = new PDFFileResponse(pdfFile);
-            this.comments = comments.stream().map(comment -> new CommentResponse(comment)).toList();
-        }
-
-        public PDFFileResponse getPdfFile() { return pdfFile; }
-        public List<CommentResponse> getComments() { return comments; }
-    }
-
-    // 3. Download or display PDF file inline — accessible **only via shareable link**
+    // 3. Download or display PDF file inline — accessible **only via shareable
+    // link**
     @GetMapping("/download/{id}")
-    public ResponseEntity<Resource> downloadPdfForAuthenticatedUser(@PathVariable Long id, Authentication authentication) {
+    public ResponseEntity<Resource> downloadPdfForAuthenticatedUser(@PathVariable Long id,
+            Authentication authentication) {
         // Initial check for authentication, though Spring Security should handle this
         if (authentication == null || !authentication.isAuthenticated()) {
             logger.warn("Unauthorized attempt to download PDF ID: {}. Authentication missing or invalid.", id);
@@ -212,18 +149,22 @@ public class PDFController {
         }
 
         PDFFile pdfFile = pdfFileOptional.get();
-        logger.info("Found PDF: '{}' (ID: {}). Owner: {}. Requested by: {}", pdfFile.getFilename(), id, pdfFile.getUploadedBy(), currentUsername);
+        logger.info("Found PDF: '{}' (ID: {}). Owner: {}. Requested by: {}", pdfFile.getFilename(), id,
+                pdfFile.getUploadedBy(), currentUsername);
 
         // Ownership Check
         if (!pdfFile.getUploadedBy().equals(currentUsername)) {
-            logger.warn("FORBIDDEN: User {} attempted to access PDF '{}' (ID: {}) owned by {}. Denying access.", currentUsername, pdfFile.getFilename(), id, pdfFile.getUploadedBy());
+            logger.warn("FORBIDDEN: User {} attempted to access PDF '{}' (ID: {}) owned by {}. Denying access.",
+                    currentUsername, pdfFile.getFilename(), id, pdfFile.getUploadedBy());
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
         }
 
-        logger.info("Ownership check passed for PDF ID: {}. User: {}. Proceeding to serve file: {}", id, currentUsername, pdfFile.getFilepath());
+        logger.info("Ownership check passed for PDF ID: {}. User: {}. Proceeding to serve file: {}", id,
+                currentUsername, pdfFile.getFilepath());
 
         try {
-            Path filePathObj = Paths.get(pdfFile.getFilepath()); // Renamed to avoid conflict if 'filePath' is used elsewhere
+            Path filePathObj = Paths.get(pdfFile.getFilepath()); // Renamed to avoid conflict if 'filePath' is used
+                                                                 // elsewhere
             Resource resource = new UrlResource(filePathObj.toUri());
 
             if (resource.exists() && resource.isReadable()) {
@@ -233,20 +174,23 @@ public class PDFController {
                         .contentType(MediaType.APPLICATION_PDF)
                         .body(resource);
             }
-            
+
             else {
-                logger.error("Error: File not found or not readable at path: {} for PDF ID: {}", pdfFile.getFilepath(), id);
+                logger.error("Error: File not found or not readable at path: {} for PDF ID: {}", pdfFile.getFilepath(),
+                        id);
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null); // Internal server error
             }
         } catch (MalformedURLException e) {
-            logger.error("Error: Malformed URL for filepath: {} for PDF ID: {}. Error: {}", pdfFile.getFilepath(), id, e.getMessage(), e);
+            logger.error("Error: Malformed URL for filepath: {} for PDF ID: {}. Error: {}", pdfFile.getFilepath(), id,
+                    e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
     // Add comment to PDF
     @PostMapping("/{id}/comments")
-    public ResponseEntity<?> addComment(@PathVariable Long id, @RequestBody CommentRequest commentRequest, Authentication auth) {
+    public ResponseEntity<?> addComment(@PathVariable Long id, @RequestBody CommentRequest commentRequest,
+            Authentication auth) {
         var pdfOpt = pdfRepository.findById(id);
         if (pdfOpt.isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -282,13 +226,15 @@ public class PDFController {
         // Create or find existing share record (optional: for now, always create new)
         com.pdfmanagement.model.SharedFile sharedFile = new com.pdfmanagement.model.SharedFile();
         sharedFile.setPdfFile(pdfFile);
-        // The shareToken is auto-generated by the SharedFile entity's @PrePersist or default value
+        // The shareToken is auto-generated by the SharedFile entity's @PrePersist or
+        // default value
         sharedFileRepository.save(sharedFile);
 
         // Construct the shareable link (adjust frontend URL as needed)
-        String shareableLink = "http://localhost:5173/share/" + sharedFile.getShareToken(); // Updated port 
+        String shareableLink = "http://localhost:5173/share/" + sharedFile.getShareToken(); // Updated port
 
-        return ResponseEntity.ok(java.util.Map.of("shareableLink", shareableLink, "shareToken", sharedFile.getShareToken()));
+        return ResponseEntity
+                .ok(java.util.Map.of("shareableLink", shareableLink, "shareToken", sharedFile.getShareToken()));
     }
 
     @GetMapping("/shared/view/{shareToken}")
@@ -310,7 +256,8 @@ public class PDFController {
 
             if (!resource.exists() || !resource.isReadable()) {
                 // Log this error, as it indicates a missing file for a valid share token
-                System.err.println("Error: File not found for shareToken: " + shareToken + ", filepath: " + pdfFile.getFilepath());
+                System.err.println(
+                        "Error: File not found for shareToken: " + shareToken + ", filepath: " + pdfFile.getFilepath());
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null); // Internal server error
             }
 
@@ -318,18 +265,12 @@ public class PDFController {
                     .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + pdfFile.getFilename() + "\"")
                     .contentType(MediaType.APPLICATION_PDF)
                     .body(resource);
-        } 
-        
+        }
+
         catch (MalformedURLException e) {
-            System.err.println("Error: Malformed URL for filepath: " + pdfFile.getFilepath() + " for shareToken: " + shareToken + ". Error: " + e.getMessage());
+            System.err.println("Error: Malformed URL for filepath: " + pdfFile.getFilepath() + " for shareToken: "
+                    + shareToken + ". Error: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
-    }
-
-    public static class CommentRequest {
-        private String text;
-
-        public String getText() { return text; }
-        public void setText(String text) { this.text = text; }
     }
 }
