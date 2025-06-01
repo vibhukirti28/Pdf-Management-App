@@ -8,6 +8,26 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.nio.file.*;
 
+/**
+ * Service for handling file storage operations, specifically for PDF files.
+ * <p>
+ * This service provides functionality to store uploaded PDF files to a specified directory.
+ * The upload directory is configured via the {@code file.upload-dir} property.
+ * Only files with a ".pdf" extension are allowed; attempts to store other file types will result in an exception.
+ * </p>
+ *
+ * <p>
+ * Example usage:
+ * <pre>
+ * {@code
+ * String storedPath = fileStorageService.storeFile(multipartFile);
+ * }
+ * </pre>
+ * </p>
+ *
+ * @author YourName
+ * @since 1.0
+ */
 @Service
 public class FileStorageService {
 

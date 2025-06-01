@@ -10,6 +10,15 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Global exception handler for validation errors in controller methods.
+ * <p>
+ * This class handles {@link MethodArgumentNotValidException} thrown when
+ * validation on an argument annotated with {@code @Valid} fails.
+ * It collects all field errors and returns them as a map in the response body,
+ * with HTTP status 400 (Bad Request).
+ * </p>
+ */
 @ControllerAdvice
 public class ValidationExceptionHandler {
 

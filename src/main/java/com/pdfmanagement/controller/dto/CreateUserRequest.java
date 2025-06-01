@@ -7,6 +7,30 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+/**
+ * Data Transfer Object (DTO) for creating a new user.
+ * <p>
+ * This class encapsulates the necessary information required to register a new user,
+ * including username, email, and password. Validation annotations are used to ensure
+ * that the provided data meets the required constraints.
+ * </p>
+ *
+ * <ul>
+ *   <li><b>username</b>: Must not be blank and must be between 3 and 50 characters.</li>
+ *   <li><b>email</b>: Must not be blank and must be a valid email address.</li>
+ *   <li><b>password</b>: Must not be blank and must be between 8 and 50 characters.</li>
+ * </ul>
+ *
+ * <p>
+ * Example usage:
+ * </p>
+ * <pre>
+ * CreateUserRequest request = new CreateUserRequest();
+ * request.setUsername("john_doe");
+ * request.setEmail("john@example.com");
+ * request.setPassword("securePassword123");
+ * </pre>
+ */
 @Getter
 @Setter
 public class CreateUserRequest {

@@ -53,6 +53,19 @@ public class PDFController {
     @Autowired
     private com.pdfmanagement.repository.SharedFileRepository sharedFileRepository; // Added SharedFileRepository
 
+    /**
+     * Handles the uploading of a PDF file.
+     * <p>
+     * This endpoint accepts a multipart file upload, stores the file using the fileStorageService,
+     * and saves metadata about the uploaded PDF (such as filename, file path, uploader's email, and upload time)
+     * to the database via the pdfRepository.
+     * </p>
+     *
+     * @param file           the PDF file to be uploaded, received as a multipart file
+     * @param authentication the authentication object containing the user's details (email)
+     * @return a ResponseEntity indicating the result of the upload operation;
+     *         returns a success message if the upload is successful, or an error message if it fails
+     */
     @PostMapping("/upload")
     public ResponseEntity<?> uploadPdf(@RequestParam("file") MultipartFile file, Authentication authentication) {
         try {
@@ -73,9 +86,14 @@ public class PDFController {
         }
     }
 
-    // 1. Search endpoint returns detailsUrl to get PDF metadata + comments
-    // @GetMapping("/search") // Removed duplicate/conflicting mapping
-
+    /**
+     * Searches for PDF files uploaded by the authenticated user that match the given query in their filename.
+     *
+     * @param query the search query to filter filenames (case-insensitive)
+     * @param authentication the authentication object containing the user's credentials
+     * @return a ResponseEntity containing a list of PDFFileResponse objects matching the search criteria,
+     *         or a 401 Unauthorized status if the user is not authenticated
+     */
     @GetMapping("/my-files/search")
     public ResponseEntity<List<PDFFileResponse>> searchMyFiles(@RequestParam("q") String query,
             Authentication authentication) {
@@ -87,6 +105,17 @@ public class PDFController {
         return ResponseEntity.ok(userPdfs.stream().map(pdf -> new PDFFileResponse(pdf)).toList());
     }
 
+    /**
+     * Retrieves the list of PDF files uploaded by the currently authenticated user.
+     *
+     * <p>This endpoint requires the user to be authenticated. If the authentication is missing or invalid,
+     * a 401 Unauthorized response is returned. Otherwise, it fetches all PDF files associated with the
+     * authenticated user's email and returns them as a list of {@link PDFFileResponse} objects.</p>
+     *
+     * @param authentication the authentication object containing the user's credentials
+     * @return a {@link ResponseEntity} containing a list of {@link PDFFileResponse} if authenticated,
+     *         or a 401 Unauthorized response if not authenticated
+     */
     @GetMapping("/my-files")
     public ResponseEntity<List<PDFFileResponse>> getMyFiles(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
@@ -96,8 +125,16 @@ public class PDFController {
         List<PDFFile> userPdfs = pdfRepository.findByUploadedBy(email);
         return ResponseEntity.ok(userPdfs.stream().map(pdf -> new PDFFileResponse(pdf)).toList());
     }
-
-    // 1. Search endpoint returns detailsUrl to get PDF metadata + comments
+    /**
+     * Searches for PDF files by filename across all users.
+     *
+     * <p>This endpoint allows users to search for PDF files by their filenames, regardless of the uploader.
+     * It returns a list of {@link PdfSearchResult} objects containing the ID, filename, uploader's email,
+     * upload time, and a link to download the PDF.</p>
+     *
+     * @param query the search query to filter filenames (case-insensitive)
+     * @return a {@link ResponseEntity} containing a list of {@link PdfSearchResult} objects
+     */
     @GetMapping("/search")
     public ResponseEntity<?> searchPdfs(@RequestParam("q") String query) {
         var results = pdfRepository.findByFilenameContainingIgnoreCase(query);
@@ -114,7 +151,15 @@ public class PDFController {
         return ResponseEntity.ok(response);
     }
 
-    // 2. Get PDF metadata + all comments by PDF id
+    /**
+     * Retrieves the details of a specific PDF file by its ID.
+     *
+     * <p>This endpoint fetches the PDF file's metadata and associated comments based on the provided ID.
+     * If the PDF file is not found, it returns a 404 Not Found response.</p>
+     *
+     * @param id the ID of the PDF file to retrieve
+     * @return a {@link ResponseEntity} containing the PDF details and comments, or a 404 Not Found response
+     */
     @GetMapping("/{id}")
     public ResponseEntity<?> getPdfDetails(@PathVariable Long id) {
         var pdfOpt = pdfRepository.findById(id);
@@ -126,9 +171,17 @@ public class PDFController {
 
         return ResponseEntity.ok(new PdfDetailsResponse(pdfFile, comments));
     }
-
-    // 3. Download or display PDF file inline — accessible **only via shareable
-    // link**
+/**
+     * Downloads a PDF file for the authenticated user.
+     *
+     * <p>This endpoint allows users to download a PDF file by its ID, provided they are authenticated
+     * and the file belongs to them. If the user is not authenticated or does not own the file,
+     * appropriate error responses are returned.</p>
+     *
+     * @param id the ID of the PDF file to download
+     * @param authentication the authentication object containing the user's credentials
+     * @return a {@link ResponseEntity} containing the PDF file as a resource, or an error response
+     */
     @GetMapping("/download/{id}")
     public ResponseEntity<Resource> downloadPdfForAuthenticatedUser(@PathVariable Long id,
             Authentication authentication) {
@@ -163,8 +216,8 @@ public class PDFController {
                 currentUsername, pdfFile.getFilepath());
 
         try {
-            Path filePathObj = Paths.get(pdfFile.getFilepath()); // Renamed to avoid conflict if 'filePath' is used
-                                                                 // elsewhere
+            Path filePathObj = Paths.get(pdfFile.getFilepath()); 
+                                                              
             Resource resource = new UrlResource(filePathObj.toUri());
 
             if (resource.exists() && resource.isReadable()) {
@@ -187,7 +240,18 @@ public class PDFController {
         }
     }
 
-    // Add comment to PDF
+    /**
+     * Adds a comment to a specific PDF file.
+     *
+     * <p>This endpoint allows authenticated users to add comments to a PDF file by its ID.
+     * The comment is associated with the PDF and includes the username of the commenter,
+     * the comment text, and the time of the comment.</p>
+     *
+     * @param id the ID of the PDF file to which the comment is being added
+     * @param commentRequest the request body containing the comment text
+     * @param auth the authentication object containing the user's credentials
+     * @return a {@link ResponseEntity} containing the created comment or a 404 Not Found response if the PDF does not exist
+     */
     @PostMapping("/{id}/comments")
     public ResponseEntity<?> addComment(@PathVariable Long id, @RequestBody CommentRequest commentRequest,
             Authentication auth) {
@@ -206,6 +270,20 @@ public class PDFController {
         return ResponseEntity.ok(new CommentResponse(comment)); // Return the created comment
     }
 
+
+    /**
+     * Shares a PDF file by generating a shareable link.
+     * <p>
+     * This endpoint allows the authenticated owner of a PDF to generate a unique shareable link
+     * for the specified PDF file. The link can be distributed to others for access.
+     * </p>
+     *
+     * @param id              the ID of the PDF file to share
+     * @param authentication  the authentication object representing the current user
+     * @return a ResponseEntity containing the shareable link and token if successful,
+     *         or an error response if the user is not authenticated, not authorized,
+     *         or the PDF file does not exist
+     */
     @PostMapping("/{id}/share")
     public ResponseEntity<?> sharePdf(@PathVariable Long id, Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
@@ -237,6 +315,19 @@ public class PDFController {
                 .ok(java.util.Map.of("shareableLink", shareableLink, "shareToken", sharedFile.getShareToken()));
     }
 
+    /**
+     * Handles HTTP GET requests to view a shared PDF file using a share token.
+     * <p>
+     * This endpoint allows users to access a PDF file that has been shared with them via a unique share token.
+     * If the share token is valid and the corresponding PDF file exists and is readable, the PDF is returned
+     * as an inline resource for viewing in the browser.
+     * </p>
+     *
+     * @param shareToken the unique token associated with the shared PDF file
+     * @return a {@link ResponseEntity} containing the PDF resource if found and accessible,
+     *         a 404 Not Found response if the token is invalid or the file is missing,
+     *         or a 500 Internal Server Error if there is an issue accessing the file
+     */
     @GetMapping("/shared/view/{shareToken}")
     public ResponseEntity<Resource> viewSharedPdf(@PathVariable String shareToken) {
         var sharedFileOpt = sharedFileRepository.findByShareToken(shareToken);

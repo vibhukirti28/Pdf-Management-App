@@ -35,6 +35,18 @@ public class SharedFileController {
     private CommentRepository commentRepository;
 
     // Generate shareable link for a PDF (requires auth)
+    /**
+     * Generates a shareable link for a PDF file identified by its ID.
+     * <p>
+     * This endpoint creates a new {@link SharedFile} entry associated with the specified PDF file,
+     * and returns a shareable URL that can be used to access the file.
+     * </p>
+     *
+     * @param pdfId the ID of the PDF file to generate a share link for
+     * @param auth the authentication object representing the current user
+     * @return a {@link ResponseEntity} containing the generated share URL if successful,
+     *         or a 404 Not Found response if the PDF file does not exist
+     */
     @PostMapping("/generate/{pdfId}")
     public ResponseEntity<?> generateShareLink(@PathVariable Long pdfId, Authentication auth) {
         var pdfOpt = pdfRepository.findById(pdfId);
@@ -55,6 +67,18 @@ public class SharedFileController {
     }
 
     // Access shared PDF metadata + comments by share token (no auth)
+    /**
+     * Handles HTTP GET requests to access a shared PDF file using a share token.
+     * <p>
+     * This endpoint retrieves the shared PDF file and its associated comments if the provided
+     * share token is valid. If the share token does not correspond to any shared file, a 404 Not Found
+     * response is returned.
+     * </p>
+     *
+     * @param shareToken the unique token used to access the shared PDF file
+     * @return a {@link ResponseEntity} containing a {@link PdfDetailsResponse} with the PDF file and its comments,
+     *         or a 404 Not Found response if the token is invalid
+     */
     @GetMapping("/access/{shareToken}")
     public ResponseEntity<?> accessSharedPdf(@PathVariable String shareToken) {
         var sharedOpt = sharedFileRepository.findByShareToken(shareToken);
@@ -70,6 +94,18 @@ public class SharedFileController {
     }
 
     // Download shared PDF by share token (no auth)
+    /**
+     * Handles HTTP GET requests for downloading a shared PDF file using a share token.
+     * <p>
+     * This endpoint retrieves a shared PDF file associated with the provided share token.
+     * If the token is valid and the file exists and is readable, the PDF is returned as an inline resource.
+     * Otherwise, a 404 Not Found or 500 Internal Server Error response is returned as appropriate.
+     * </p>
+     *
+     * @param shareToken the unique token identifying the shared PDF file
+     * @return a {@link ResponseEntity} containing the PDF file as a {@link Resource} if found and accessible,
+     *         or an appropriate HTTP error response if not found or an error occurs
+     */
     @GetMapping("/download/{shareToken}")
     public ResponseEntity<Resource> downloadSharedPdf(@PathVariable String shareToken) {
         var sharedOpt = sharedFileRepository.findByShareToken(shareToken);
@@ -99,6 +135,18 @@ public class SharedFileController {
     }
 
     // Add a comment to a shared PDF (no auth, uses shareToken)
+    /**
+     * Adds a comment to a shared PDF file using the provided share token.
+     * <p>
+     * This endpoint allows a guest user to add a comment to a PDF file that has been shared via a unique share token.
+     * The comment details, including the username and text, are provided in the request body.
+     * </p>
+     *
+     * @param shareToken      the unique token identifying the shared file
+     * @param commentRequest  the request body containing the username and comment text
+     * @return a ResponseEntity containing a success message if the comment is added,
+     *         or a 404 Not Found response if the shared file does not exist
+     */
     @PostMapping("/{shareToken}/comments")
     public ResponseEntity<?> addSharedFileComment(@PathVariable String shareToken,
             @RequestBody GuestCommentRequest commentRequest) {
@@ -121,6 +169,21 @@ public class SharedFileController {
         return ResponseEntity.ok(java.util.Map.of("message", "Comment added"));
     }
 
+    /**
+     * Represents a request to add a comment from a guest user.
+     * Contains the username of the guest and the comment text.
+     *
+     * <p>
+     * Example usage:
+     * <pre>
+     *     GuestCommentRequest request = new GuestCommentRequest();
+     *     request.setUsername("guestUser");
+     *     request.setText("This is a comment.");
+     * </pre>
+     * </p>
+     *
+     * @author YourName
+     */
     public static class GuestCommentRequest {
         private String username;
         private String text;

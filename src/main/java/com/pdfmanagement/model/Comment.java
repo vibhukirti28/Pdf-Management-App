@@ -3,7 +3,28 @@ package com.pdfmanagement.model;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+import lombok.Getter;
+import lombok.Setter;
+
+/**
+ * Represents a comment made by a user on a PDF file.
+ * <p>
+ * Each comment is associated with a specific PDF file and contains information
+ * about the user who made the comment, the comment text, and the time the comment was made.
+ * </p>
+ *
+ * Fields:
+ * <ul>
+ *   <li>id - Unique identifier for the comment.</li>
+ *   <li>pdfFile - The PDF file to which this comment belongs.</li>
+ *   <li>username - The name of the user who made the comment.</li>
+ *   <li>text - The content of the comment.</li>
+ *   <li>commentTime - The date and time when the comment was created.</li>
+ * </ul>
+ */
 @Entity
+@Getter
+@Setter
 public class Comment {
 
     @Id
@@ -18,45 +39,4 @@ public class Comment {
     private String text;
     private LocalDateTime commentTime;
 
-    // Getters and setters
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public PDFFile getPdfFile() {
-        return pdfFile;
-    }
-
-    public void setPdfFile(PDFFile pdfFile) {
-        this.pdfFile = pdfFile;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getText() {
-        return text;
-    }
-
-    public void setText(String text) {
-        this.text = text;
-    }
-
-    public LocalDateTime getCommentTime() {
-        return commentTime;
-    }
-
-    public void setCommentTime(LocalDateTime commentTime) {
-        this.commentTime = commentTime;
-    }
 }

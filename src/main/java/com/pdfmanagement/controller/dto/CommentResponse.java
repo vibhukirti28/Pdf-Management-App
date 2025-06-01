@@ -6,6 +6,19 @@ import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Data Transfer Object (DTO) for representing a comment response.
+ * <p>
+ * This class encapsulates the details of a comment, including its ID, text,
+ * the username of the commenter, and the time the comment was made.
+ * </p>
+ *
+ * <p>
+ * Typically used to transfer comment data from the backend to the client.
+ * </p>
+ *
+ * @author YourName
+ */
 @Getter
 @Setter
 public class CommentResponse {

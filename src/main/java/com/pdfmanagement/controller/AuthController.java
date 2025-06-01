@@ -59,6 +59,18 @@ public class AuthController {
     }
 
     // Login endpoint
+    /**
+     * Handles user login requests.
+     * <p>
+     * Expects a JSON payload containing "email" and "password" fields.
+     * Authenticates the user using the provided credentials. If authentication is successful,
+     * generates a JWT token and returns it in the response. If authentication fails,
+     * returns a 401 Unauthorized status with an error message.
+     * </p>
+     *
+     * @param loginMap a map containing "email" and "password" keys with user credentials
+     * @return a ResponseEntity containing either a JWT token on success or an error message on failure
+     */
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody Map<String, String> loginMap) {
         String email = loginMap.get("email");

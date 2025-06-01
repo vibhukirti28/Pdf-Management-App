@@ -16,6 +16,36 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+/**
+ * JwtAuthenticationFilter is a Spring Security filter that intercepts HTTP requests to perform JWT-based authentication.
+ * <p>
+ * This filter extends {@link OncePerRequestFilter} to ensure it is executed once per request. It checks for the presence
+ * of a JWT Bearer token in the Authorization header, validates it, and sets the authentication in the SecurityContext
+ * if the token is valid and corresponds to a known user.
+ * <p>
+ * Public endpoints (such as login, registration, and shared resource access) are excluded from JWT validation.
+ * <p>
+ * Main responsibilities:
+ * <ul>
+ *   <li>Skip JWT validation for configured public endpoints.</li>
+ *   <li>Extract and validate JWT from the Authorization header for protected endpoints.</li>
+ *   <li>Extract user email from the JWT and load user details from the repository.</li>
+ *   <li>Validate the JWT against the user's username.</li>
+ *   <li>Set the authenticated user in the SecurityContext if validation succeeds.</li>
+ *   <li>Log key steps and decisions for debugging and traceability.</li>
+ * </ul>
+ * <p>
+ * Dependencies:
+ * <ul>
+ *   <li>{@link JwtUtil} for JWT parsing and validation.</li>
+ *   <li>{@link UserRepository} for loading user details by email.</li>
+ * </ul>
+ * <p>
+ * If the JWT is missing, malformed, or invalid, the filter allows the request to proceed without authentication,
+ * leaving further handling to downstream filters or controllers.
+ *
+ * @author [Your Name]
+ */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -25,6 +55,31 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Autowired
     private UserRepository userRepository;
 
+    /**
+     * Filters incoming HTTP requests to handle JWT-based authentication.
+     * <p>
+     * This method intercepts each request and performs the following:
+     * <ul>
+     *   <li>Logs the incoming request method and URI for debugging purposes.</li>
+     *   <li>Skips JWT validation for public endpoints such as login, registration, shared access, and PDF search.</li>
+     *   <li>Checks for the presence and validity of the "Authorization" header with a Bearer token.</li>
+     *   <li>If a valid JWT is present, extracts the user's email and attempts to authenticate the user by:
+     *     <ul>
+     *       <li>Loading user details from the repository using the extracted email.</li>
+     *       <li>Validating the JWT against the user's username.</li>
+     *       <li>Setting the authentication in the Spring Security context if validation succeeds.</li>
+     *     </ul>
+     *   </li>
+     *   <li>If authentication is not possible (e.g., missing/invalid token, user not found), the request proceeds without authentication.</li>
+     *   <li>Always passes the request and response to the next filter in the chain.</li>
+     * </ul>
+     *
+     * @param request      the HTTP servlet request
+     * @param response     the HTTP servlet response
+     * @param filterChain  the filter chain to pass the request/response to the next filter
+     * @throws ServletException if an exception occurs during filtering
+     * @throws IOException      if an I/O error occurs during filtering
+     */
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,

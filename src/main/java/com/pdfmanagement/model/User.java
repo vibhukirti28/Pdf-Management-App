@@ -7,6 +7,37 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.Collections;
 
+/**
+ * Represents a user entity in the PDF Management application.
+ * <p>
+ * This class is mapped to the "users" table in the database and implements
+ * the {@link org.springframework.security.core.userdetails.UserDetails} interface
+ * for integration with Spring Security.
+ * </p>
+ *
+ * <p>
+ * The {@code User} entity contains basic user information such as username,
+ * email, and password. The email is used as the principal identifier for authentication.
+ * </p>
+ *
+ * <ul>
+ *   <li>{@code id} - The unique identifier for the user (primary key).</li>
+ *   <li>{@code username} - The user's display name (stored in the database).</li>
+ *   <li>{@code email} - The user's email address (used for authentication).</li>
+ *   <li>{@code password} - The user's hashed password.</li>
+ * </ul>
+ *
+ * <p>
+ * By default, this implementation does not assign any roles or authorities to the user.
+ * All account status checks (expired, locked, credentials expired, enabled) return {@code true}.
+ * </p>
+ *
+ * <p>
+ * Note: The {@code getUsername()} method returns the user's email address to comply with
+ * the {@code UserDetails} contract, while {@code getDbUsername()} provides access to the
+ * database-stored username field.
+ * </p>
+ */
 @Entity
 @Table(name = "users")
 public class User implements UserDetails {
